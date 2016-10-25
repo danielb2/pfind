@@ -46,7 +46,7 @@ internals.ljust = function (str, padding) {
 
 internals.help = function (code = 0) {
 
-    console.log('pfind: psearch [options] PATTERN [PATTERN ...]');
+    console.log('pfind: [options] PATTERN [PATTERN ...]');
     console.log('');
     console.log('Searches ports for PATTERN. PATTERN is a case-insensitive regular expression.');
     console.log('Much like psearch but much faster and actual regular expression.');
