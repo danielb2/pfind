@@ -2,7 +2,10 @@
 const Fs = require('fs');
 const Os = require('os');
 
-const internals = {};
+const internals = {
+
+    version: '1.0.0'
+};
 
 const main = function () {
 
@@ -41,6 +44,22 @@ internals.ljust = function (str, padding) {
 };
 
 
+internals.help = function (code = 0) {
+
+    console.log('pfind: psearch [options] PATTERN [PATTERN ...]');
+    console.log('');
+    console.log('Searches ports for PATTERN. PATTERN is a case-insensitive regular expression.');
+    console.log('Much like psearch but much faster and actual regular expression.');
+    console.log('');
+    console.log('options:');
+    console.log('  -v    Show program\'s version number and exit.');
+    console.log('  -h    Show this help and exit.');
+    console.log('  -l    Display long description (pkg-descr file) for any match.');
+    console.log('  -n    Print canonical name of a port, including its version.');
+    process.exit(code);
+};
+
+
 internals.settings = function () {
 
     let args = Array.prototype.slice.call(process.argv, 2);
@@ -60,6 +79,17 @@ internals.settings = function () {
     const settings = {
         description: (flags.indexOf('l') === -1 ? false : true),
         name: (flags.indexOf('n') === -1 ? false : true),
+        version: (flags.indexOf('v') === -1 ? false : true),
+        help: (flags.indexOf('h') === -1 ? false : true)
+    }
+
+    if (settings.version) {
+        console.log(internals.version);
+        process.exit();
+    }
+
+    if (settings.help) {
+        internals.help();
     }
 
     settings.search = args.join('.*');
