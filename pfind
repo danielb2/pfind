@@ -1,0 +1,99 @@
+#!/usr/bin/env node
+const Fs = require('fs');
+const Os = require('os');
+
+const internals = {};
+
+const main = function () {
+
+    const settings = internals.settings()
+    const match = RegExp(settings.search, 'i');
+    let description = undefined;
+
+    const lines = internals.getPortInfo();
+    for (let i = 0; i < lines.length; ++i) {
+        const line = lines[i];
+
+        const parts = line.split('|')
+        let [name, port, path, shortDesc, descPath] = parts;
+        if (!port) {
+            continue;
+        }
+        port = port.split('/usr/ports/').pop();
+        if ((port + ' ' + shortDesc).match(match)) {
+            const show = settings.name ? name : port;
+            console.log(internals.ljust(show, 26) + ' ' + shortDesc);
+            if (settings.description) {
+                description = Fs.readFileSync(descPath).toString();
+                internals.printDesc(description);
+            };
+        }
+    }
+}
+
+internals.ljust = function (str, padding) {
+
+    let pad = '';
+    for (let i = str.length; i < padding; ++i) {
+        pad += ' ';
+    }
+    return str += pad;
+};
+
+
+internals.settings = function () {
+
+    let args = Array.prototype.slice.call(process.argv, 2);
+
+    let flags = [];
+
+    args = args.filter((arg) => {
+
+        const flag = arg[0] === '-';
+        if (flag) {
+            flags = arg.slice(1,arg.length).split('');
+            return false;
+        }
+        return true;
+    });
+
+    const settings = {
+        description: (flags.indexOf('l') === -1 ? false : true),
+        name: (flags.indexOf('n') === -1 ? false : true),
+    }
+
+    settings.search = args.join('.*');
+
+    return settings;
+};
+
+
+internals.getPortInfo = function () {
+
+    const baseRelease = Os.release().split('.').shift();
+    const filePath = `/usr/ports/INDEX-${baseRelease}`;
+    if (!Fs.existsSync(filePath)) {
+        console.log(`Missing INDEX file: ${filePath}`);
+        console.log('Options:');
+        console.log('  1. portsnap fetch update');
+        console.log('  2. make fetchindex (in portsdir)');
+        console.log('  3. make index (in portsdir)');
+    }
+
+    const file = Fs.readFileSync(`/usr/ports/INDEX-${baseRelease}`).toString();
+    return file.split('\n');
+};
+
+
+internals.printDesc = function (str) {
+
+    const lines = str.split('\n');
+    for (let i = 0; i < lines.length; ++i) {
+        const line = lines[i];
+        console.log('    ' + line);
+    }
+};
+
+
+main();
+
